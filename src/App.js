@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Upload, Download, Settings, TrendingUp, Users, Award } from 'lucide-react';
+import { Upload, Download, Settings, TrendingUp, Users, X , Variable} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const DEFAULT_WEIGHTS = { TR: 0.75, CR: 0.75, TN: 1, CM: 0.25 };
@@ -185,7 +185,7 @@ export default function DiscGolfElo() {
   const [data, setData] = useState(null);
   const [results, setResults] = useState(null);
   const [activeTab, setActiveTab] = useState('upload');
-  const [showSettings, setShowSettings] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
   
@@ -341,389 +341,399 @@ export default function DiscGolfElo() {
   }, [results, selectedRound]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Award className="w-10 h-10 text-indigo-600" />
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Disc Golf ELO Calculator</h1>
-                <p className="text-gray-600">Multi-player rating system with margin of victory</p>
-              </div>
+    <div className="min-h-screen bg-stone-50 w-full">
+      <div className="w-full">
+    {/* Header */}
+    <div className="bg-gradient-to-br from-emerald-900 to-stone-600 text-stone-200 w-full">
+      <div className="w-full px-6 py-10">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <Variable className="w-12 h-12" />
+              <h1 className="text-5xl font-light tracking-wide">Disc Golf Elo Calculator</h1>
             </div>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Settings className="w-6 h-6 text-gray-600" />
-            </button>
+            <p className="text-xl text-stone-300 max-w-2xl font-light">
+              Multiplayer rating engine with granular configuration options.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowConfigModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 backdrop-blur-sm border border-white/20"
+          >
+            <Settings className="w-5 h-5" />
+            <span className="font-normal">Configure</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Tabs */}
+    <div className="w-full px-6 py-12">
+      <div className="flex gap-2 mb-12 border-b border-stone-200">
+        <button
+          onClick={() => setActiveTab('upload')}
+          className={`flex items-center gap-2 px-6 py-4 font-normal transition-all duration-200 border-b-2 ${
+            activeTab === 'upload'
+              ? 'border-emerald-800 text-emerald-900'
+              : 'border-transparent text-stone-500 hover:text-stone-700'
+          }`}
+        >
+          <Upload className="w-5 h-5" />
+          Upload data
+        </button>
+        <button
+          onClick={() => setActiveTab('rankings')}
+          disabled={!results}
+          className={`flex items-center gap-2 px-6 py-4 font-normal transition-all duration-200 border-b-2 ${
+            activeTab === 'rankings'
+              ? 'border-emerald-800 text-emerald-900'
+              : 'border-transparent text-stone-500 hover:text-stone-700 disabled:text-stone-300 disabled:cursor-not-allowed'
+          }`}
+        >
+          <TrendingUp className="w-5 h-5" />
+          Rankings
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          disabled={!results}
+          className={`flex items-center gap-2 px-6 py-4 font-normal transition-all duration-200 border-b-2 ${
+            activeTab === 'history'
+              ? 'border-emerald-800 text-emerald-900'
+              : 'border-transparent text-stone-500 hover:text-stone-700 disabled:text-stone-300 disabled:cursor-not-allowed'
+          }`}
+        >
+          <Users className="w-5 h-5" />
+          History
+        </button>
+      </div>
+
+      {/* Upload Tab */}
+      {activeTab === 'upload' && (
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-stone-100 rounded-2xl p-16 text-center border border-stone-200">
+            <Upload className="w-20 h-20 mx-auto text-stone-400 mb-6" />
+            <h2 className="text-3xl font-light text-stone-900 mb-4">Upload your data</h2>
+            <p className="text-lg text-stone-600 mb-8 max-w-md mx-auto font-light">
+              Upload an Excel file with player names and round scores to calculate ratings
+            </p>
+            <div className="flex flex-col gap-4 items-center mb-6">
+              <label className="inline-block">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={processing}
+                />
+                <span className={`px-10 py-3 rounded-xl font-normal text-lg inline-block transition-all duration-200 ${
+                  processing 
+                    ? 'bg-stone-300 text-stone-500 cursor-not-allowed' 
+                    : 'bg-emerald-900 text-stone-100 hover:bg-emerald-800 cursor-pointer shadow-lg hover:shadow-xl'
+                }`}>
+                  {processing ? 'Processing...' : 'Choose file'}
+                </span>
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="h-px w-8 bg-stone-300"></div>
+                <span className="text-stone-500 text-sm">or</span>
+                <div className="h-px w-8 bg-stone-300"></div>
+              </div>
+              <a 
+                href={`${process.env.PUBLIC_URL}/samplescores.xlsx`} 
+                download
+                className="px-6 py-3 rounded-xl font-normal text-base bg-white text-emerald-900 border-2 border-emerald-900 hover:bg-emerald-50 transition-all duration-200 flex items-center"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Sample Data
+              </a>
+            </div>
+            {error && (
+              <div className="mt-8 p-6 bg-red-50 border border-red-200 rounded-xl">
+                <p className="text-red-700 font-normal">{error}</p>
+              </div>
+            )}
+            {data && !error && (
+              <div className="mt-8 p-6 bg-emerald-50 border border-emerald-600 rounded-xl">
+                <p className="text-emerald-600 font-normal text-lg">
+                  ✓ Successfully loaded {data.length} records
+                </p>
+              </div>
+            )}
           </div>
         </div>
+      )}
 
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-bold mb-4">Algorithm Settings</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <strong>Base K:</strong> {config.BASE_K}
+      {/* Rankings Tab */}
+      {activeTab === 'rankings' && results && (
+        <div>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl font-light text-stone-900 mb-2">Player rankings</h2>
+              <p className="text-lg text-stone-600 font-light">
+                {selectedRound ? `After: ${selectedRound}` : 'Final rankings'}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <select
+                value={selectedRound || ''}
+                onChange={(e) => setSelectedRound(e.target.value || null)}
+                className="border border-stone-300 rounded-xl px-4 py-3 text-stone-700 font-normal focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+              >
+                <option value="">Final rankings</option>
+                {uniqueRounds.map(round => (
+                  <option key={round} value={round}>{round}</option>
+                ))}
+              </select>
+              <button
+                onClick={downloadExcel}
+                className="flex items-center gap-2 bg-emerald-900 text-stone-50 px-6 py-3 rounded-xl font-normal hover:bg-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Download className="w-5 h-5" />
+                Export
+              </button>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
+            <div className="overflow-auto" style={{maxHeight: '600px'}}>
+              <table className="w-full">
+                <thead className="bg-stone-100 sticky top-0 border-b border-stone-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-normal text-stone-600">Rank</th>
+                    <th className="px-6 py-4 text-left text-sm font-normal text-stone-600">Player</th>
+                    <th className="px-6 py-4 text-right text-sm font-normal text-stone-600">Rating</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {currentSnapshot.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-stone-50 transition-colors">
+                      <td className="px-6 py-4 text-stone-500 font-normal">{idx + 1}</td>
+                      <td className="px-6 py-4 text-stone-900 font-normal text-lg">{row.player}</td>
+                      <td className="px-6 py-4 text-right text-stone-900 font-medium text-xl">{Math.round(row.rating)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Tab */}
+      {activeTab === 'history' && results && (
+        <div>
+          <div className="mb-8">
+            <h2 className="text-3xl font-light text-stone-900 mb-2">Rating history</h2>
+            <p className="text-lg text-stone-600 font-light">Complete record of rating changes</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
+            <div className="overflow-auto" style={{maxHeight: '600px'}}>
+              <table className="w-full">
+                <thead className="bg-stone-100 sticky top-0 border-b border-stone-200">
+                  <tr>
+                    <th className="px-4 py-4 text-left text-xs font-normal text-stone-600">Round</th>
+                    <th className="px-4 py-4 text-left text-xs font-normal text-stone-600">Player</th>
+                    <th className="px-4 py-4 text-right text-xs font-normal text-stone-600">Score</th>
+                    <th className="px-4 py-4 text-right text-xs font-normal text-stone-600">Pre</th>
+                    <th className="px-4 py-4 text-right text-xs font-normal text-stone-600">Post</th>
+                    <th className="px-4 py-4 text-right text-xs font-normal text-stone-600">Change</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {results.history.slice(0, 200).map((row, idx) => (
+                    <tr key={idx} className="hover:bg-stone-50 transition-colors">
+                      <td className="px-4 py-3 text-xs text-stone-600">{row.round_id}</td>
+                      <td className="px-4 py-3 text-stone-900 font-normal">{row.player}</td>
+                      <td className="px-4 py-3 text-right text-stone-700">{row.score}</td>
+                      <td className="px-4 py-3 text-right text-stone-700">{Math.round(row.rating_pre)}</td>
+                      <td className="px-4 py-3 text-right text-stone-900 font-medium">{Math.round(row.rating_post)}</td>
+                      <td className={`px-4 py-3 text-right font-medium ${
+                        row.delta > 0 ? 'text-emerald-700' : row.delta < 0 ? 'text-amber-700' : 'text-stone-400'
+                      }`}>
+                        {row.delta > 0 ? '+' : ''}{Math.round(row.delta)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {results.history.length > 200 && (
+              <div className="px-6 py-4 bg-stone-100 border-t border-stone-200 text-center text-stone-600 font-light">
+                Showing first 200 of {results.history.length} records. Download Excel for complete history.
               </div>
-              <div>
-                <strong>Start Rating:</strong> {config.START_RATING}
-              </div>
-              <div>
-                <strong>Use MOV:</strong> {config.USE_MOV ? 'Yes' : 'No'}
-              </div>
-              <div>
-                <strong>Cap From Round:</strong> {config.DELTA_CAP_START_ROUND}
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Configuration Modal */}
+    {showConfigModal && (
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto">
+        <div className="bg-stone-50 rounded-2xl w-full max-w-4xl my-8 overflow-hidden">
+          <div className="sticky top-0 bg-stone-50 border-b border-stone-200 px-4 sm:px-6 py-4 flex justify-between items-center">
+            <h2 className="text-xl sm:text-2xl font-light text-stone-900">Algorithm configuration</h2>
+            <button
+              onClick={() => setShowConfigModal(false)}
+              className="p-1 sm:p-2 hover:bg-stone-200 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6 text-stone-600" />
+            </button>
+          </div>
+
+          <div className="p-4 sm:p-6 space-y-6">
+            {/* Basic Settings */}
+            <div>
+              <h3 className="text-lg font-normal text-stone-900 mb-4">Basic settings</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                  <label className="block text-sm font-normal text-stone-700 mb-2">Base K factor</label>
+                  <input
+                    type="number"
+                    value={config.BASE_K}
+                    onChange={(e) => setConfig({...config, BASE_K: Number(e.target.value)})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+                  />
+                  <p className="text-xs text-stone-500 mt-1 font-light">Determines how much ratings change per game</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-normal text-stone-700 mb-2">Starting rating</label>
+                  <input
+                    type="number"
+                    value={config.START_RATING}
+                    onChange={(e) => setConfig({...config, START_RATING: Number(e.target.value)})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+                  />
+                  <p className="text-xs text-stone-500 mt-1 font-light">Initial rating for new players</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-normal text-stone-700 mb-2">Use margin of victory</label>
+                  <select
+                    value={config.USE_MOV ? 'true' : 'false'}
+                    onChange={(e) => setConfig({...config, USE_MOV: e.target.value === 'true'})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+                  >
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                  <p className="text-xs text-stone-500 mt-1 font-light">Scale rating changes by score difference</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-normal text-stone-700 mb-2">Apply delta cap from round</label>
+                  <input
+                    type="number"
+                    value={config.DELTA_CAP_START_ROUND}
+                    onChange={(e) => setConfig({...config, DELTA_CAP_START_ROUND: Number(e.target.value)})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+                  />
+                  <p className="text-xs text-stone-500 mt-1 font-light">Start capping rating changes after this round</p>
+                </div>
               </div>
             </div>
-            <div className="mt-4">
-              <strong className="block mb-2">Round Type Weights:</strong>
-              <div className="flex gap-4 text-sm">
-                {Object.entries(config.WEIGHTS).map(([type, weight]) => (
-                  <span key={type} className="bg-gray-100 px-3 py-1 rounded">
-                    {type}: {weight}
-                  </span>
+
+            {/* Round Type Weights */}
+            <div>
+              <h3 className="text-lg font-normal text-stone-900 mb-4">Round type weights (K factor multipliers)</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                {Object.keys(config.WEIGHTS).map(type => (
+                  <div key={type}>
+                    <label className="block text-sm font-normal text-stone-700 mb-2">{type}</label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      value={config.WEIGHTS[type]}
+                      onChange={(e) => setConfig({
+                        ...config,
+                        WEIGHTS: {...config.WEIGHTS, [type]: Number(e.target.value)}
+                      })}
+                      className="w-full border border-stone-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+                    />
+                  </div>
                 ))}
               </div>
+              <p className="text-xs text-stone-500 mt-4 font-light">
+                These multiply the base K factor for different round types. Lower = less rating change.
+              </p>
+            </div>
+
+            {/* Delta Caps */}
+            <div>
+              <h3 className="text-lg font-normal text-stone-900 mb-4">Delta caps (maximum rating change)</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                {Object.keys(config.DELTA_CAPS).map(type => (
+                  <div key={type}>
+                    <label className="block text-sm font-normal text-stone-700 mb-2">{type}</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={config.DELTA_CAPS[type] === null ? '' : config.DELTA_CAPS[type]}
+                        onChange={(e) => setConfig({
+                          ...config,
+                          DELTA_CAPS: {...config.DELTA_CAPS, [type]: e.target.value === '' ? null : Number(e.target.value)}
+                        })}
+                        placeholder="No cap"
+                        className="flex-1 border border-stone-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+                      />
+                      <button
+                        onClick={() => setConfig({
+                          ...config,
+                          DELTA_CAPS: {...config.DELTA_CAPS, [type]: null}
+                        })}
+                        className="px-3 py-3 bg-stone-200 hover:bg-stone-300 rounded-lg text-sm transition-colors"
+                        title="Remove cap"
+                      >
+                        ∞
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-stone-500 mt-4 font-light">
+                Maximum rating points that can be gained/lost in a single round. Leave empty or click ∞ for no cap.
+              </p>
             </div>
           </div>
-        )}
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-lg mb-6">
-          <div className="flex border-b">
+          {/* Modal Footer */}
+          <div className="sticky bottom-0 bg-stone-100 border-t border-stone-200 px-8 py-6 flex justify-between items-center">
             <button
-              onClick={() => setActiveTab('upload')}
-              className={`flex-1 py-3 px-4 font-semibold transition-colors ${
-                activeTab === 'upload'
-                  ? 'border-b-2 border-indigo-600 text-indigo-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              onClick={resetToDefaults}
+              className="px-6 py-3 text-stone-700 font-normal hover:bg-stone-200 rounded-lg transition-colors"
             >
-              <Upload className="w-5 h-5 inline mr-2" />
-              Upload Data
+              Reset to defaults
             </button>
-            <button
-              onClick={() => setActiveTab('config')}
-              className={`flex-1 py-3 px-4 font-semibold transition-colors ${
-                activeTab === 'config'
-                  ? 'border-b-2 border-indigo-600 text-indigo-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              <Settings className="w-5 h-5 inline mr-2" />
-              Configuration
-            </button>
-            <button
-              onClick={() => setActiveTab('rankings')}
-              disabled={!results}
-              className={`flex-1 py-3 px-4 font-semibold transition-colors ${
-                activeTab === 'rankings'
-                  ? 'border-b-2 border-indigo-600 text-indigo-600'
-                  : 'text-gray-600 hover:text-gray-800 disabled:text-gray-400'
-              }`}
-            >
-              <TrendingUp className="w-5 h-5 inline mr-2" />
-              Rankings
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              disabled={!results}
-              className={`flex-1 py-3 px-4 font-semibold transition-colors ${
-                activeTab === 'history'
-                  ? 'border-b-2 border-indigo-600 text-indigo-600'
-                  : 'text-gray-600 hover:text-gray-800 disabled:text-gray-400'
-              }`}
-            >
-              <Users className="w-5 h-5 inline mr-2" />
-              History
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="px-6 py-3 text-stone-700 font-normal hover:bg-stone-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  recomputeWithNewConfig();
+                  setShowConfigModal(false);
+                }}
+                disabled={!data || processing}
+                className={`px-8 py-3 rounded-xl font-normal transition-all duration-200 ${
+                  !data || processing
+                    ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
+                    : 'bg-emerald-900 text-stone-50 hover:bg-emerald-800 shadow-lg hover:shadow-xl'
+                }`}
+              >
+                {processing ? 'Recomputing...' : 'Apply & recompute'}
+              </button>
+            </div>
           </div>
-
-          <div className="p-6">
-            {/* Configuration Tab */}
-            {activeTab === 'config' && (
-              <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Algorithm Configuration</h2>
-                  <button
-                    onClick={resetToDefaults}
-                    className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
-                  >
-                    Reset to Defaults
-                  </button>
-                </div>
-
-                {/* Basic Settings */}
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-4">Basic Settings</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Base K Factor</label>
-                      <input
-                        type="number"
-                        value={config.BASE_K}
-                        onChange={(e) => setConfig({...config, BASE_K: Number(e.target.value)})}
-                        className="w-full border rounded-lg px-4 py-2"
-                      />
-                      <p className="text-xs text-gray-600 mt-1">Determines how much ratings change per game</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Starting Rating</label>
-                      <input
-                        type="number"
-                        value={config.START_RATING}
-                        onChange={(e) => setConfig({...config, START_RATING: Number(e.target.value)})}
-                        className="w-full border rounded-lg px-4 py-2"
-                      />
-                      <p className="text-xs text-gray-600 mt-1">Initial rating for new players</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Use Margin of Victory</label>
-                      <select
-                        value={config.USE_MOV ? 'true' : 'false'}
-                        onChange={(e) => setConfig({...config, USE_MOV: e.target.value === 'true'})}
-                        className="w-full border rounded-lg px-4 py-2"
-                      >
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                      <p className="text-xs text-gray-600 mt-1">Scale rating changes by score difference</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Apply Delta Cap From Round</label>
-                      <input
-                        type="number"
-                        value={config.DELTA_CAP_START_ROUND}
-                        onChange={(e) => setConfig({...config, DELTA_CAP_START_ROUND: Number(e.target.value)})}
-                        className="w-full border rounded-lg px-4 py-2"
-                      />
-                      <p className="text-xs text-gray-600 mt-1">Start capping rating changes after this round</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Round Type Weights */}
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-4">Round Type Weights (K Factor Multipliers)</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.keys(config.WEIGHTS).map(type => (
-                      <div key={type}>
-                        <label className="block text-sm font-medium mb-2">{type}</label>
-                        <input
-                          type="number"
-                          step="0.05"
-                          value={config.WEIGHTS[type]}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            WEIGHTS: {...config.WEIGHTS, [type]: Number(e.target.value)}
-                          })}
-                          className="w-full border rounded-lg px-4 py-2"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-600 mt-4">
-                    These multiply the base K factor for different round types. Lower = less rating change.
-                  </p>
-                </div>
-
-                {/* Delta Caps */}
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-4">Delta Caps (Maximum Rating Change)</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.keys(config.DELTA_CAPS).map(type => (
-                      <div key={type}>
-                        <label className="block text-sm font-medium mb-2">{type}</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="number"
-                            value={config.DELTA_CAPS[type] === null ? '' : config.DELTA_CAPS[type]}
-                            onChange={(e) => setConfig({
-                              ...config,
-                              DELTA_CAPS: {...config.DELTA_CAPS, [type]: e.target.value === '' ? null : Number(e.target.value)}
-                            })}
-                            placeholder="No cap"
-                            className="flex-1 border rounded-lg px-4 py-2"
-                          />
-                          <button
-                            onClick={() => setConfig({
-                              ...config,
-                              DELTA_CAPS: {...config.DELTA_CAPS, [type]: null}
-                            })}
-                            className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm"
-                            title="Remove cap"
-                          >
-                            ∞
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-600 mt-4">
-                    Maximum rating points that can be gained/lost in a single round. Leave empty or click ∞ for no cap.
-                  </p>
-                </div>
-
-                {/* Apply Button */}
-                <div className="flex justify-end gap-4">
-                  <button
-                    onClick={recomputeWithNewConfig}
-                    disabled={!data || processing}
-                    className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                      !data || processing
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                    }`}
-                  >
-                    {processing ? 'Recomputing...' : 'Apply & Recompute'}
-                  </button>
-                </div>
-                {!data && (
-                  <p className="text-center text-gray-500 mt-4">
-                    Upload data first to apply configuration changes
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Upload Tab */}
-            {activeTab === 'upload' && (
-              <div className="text-center py-12">
-                <Upload className="w-16 h-16 mx-auto text-indigo-600 mb-4" />
-                <h2 className="text-2xl font-bold mb-4">Upload Your Excel File</h2>
-                <p className="text-gray-600 mb-6">
-                  Upload an Excel file with player names in the first column and round scores in subsequent columns
-                </p>
-                <label className="inline-block">
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    disabled={processing}
-                  />
-                  <span className={`px-6 py-3 rounded-lg inline-block transition-colors ${
-                    processing 
-                      ? 'bg-gray-400 text-white cursor-not-allowed' 
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer'
-                  }`}>
-                    {processing ? 'Processing...' : 'Choose File'}
-                  </span>
-                </label>
-                {error && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600">{error}</p>
-                  </div>
-                )}
-                {data && !error && (
-                  <p className="mt-4 text-green-600 font-semibold">
-                    ✓ File loaded: {data.length} records processed
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Rankings Tab */}
-            {activeTab === 'rankings' && results && (
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold">Player Rankings</h2>
-                    <p className="text-gray-600">
-                      {selectedRound ? `After: ${selectedRound}` : 'Final Rankings'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <select
-                      value={selectedRound || ''}
-                      onChange={(e) => setSelectedRound(e.target.value || null)}
-                      className="border rounded-lg px-4 py-2"
-                    >
-                      <option value="">Final Rankings</option>
-                      {uniqueRounds.map(round => (
-                        <option key={round} value={round}>{round}</option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={downloadExcel}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                    >
-                      <Download className="w-5 h-5" />
-                      Export
-                    </button>
-                  </div>
-                </div>
-                <div className="overflow-auto max-h-96">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold">Rank</th>
-                        <th className="px-4 py-3 text-left font-semibold">Player</th>
-                        <th className="px-4 py-3 text-right font-semibold">Rating</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentSnapshot.map((row, idx) => (
-                        <tr key={idx} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-3">{idx + 1}</td>
-                          <td className="px-4 py-3 font-medium">{row.player}</td>
-                          <td className="px-4 py-3 text-right">{Math.round(row.rating)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* History Tab */}
-            {activeTab === 'history' && results && (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Rating History</h2>
-                <div className="overflow-auto max-h-96">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-3 py-2 text-left font-semibold">Round</th>
-                        <th className="px-3 py-2 text-left font-semibold">Player</th>
-                        <th className="px-3 py-2 text-right font-semibold">Score</th>
-                        <th className="px-3 py-2 text-right font-semibold">Pre</th>
-                        <th className="px-3 py-2 text-right font-semibold">Post</th>
-                        <th className="px-3 py-2 text-right font-semibold">Δ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.history.slice(0, 200).map((row, idx) => (
-                        <tr key={idx} className="border-b hover:bg-gray-50">
-                          <td className="px-3 py-2 text-xs">{row.round_id}</td>
-                          <td className="px-3 py-2">{row.player}</td>
-                          <td className="px-3 py-2 text-right">{row.score}</td>
-                          <td className="px-3 py-2 text-right">{Math.round(row.rating_pre)}</td>
-                          <td className="px-3 py-2 text-right">{Math.round(row.rating_post)}</td>
-                          <td className={`px-3 py-2 text-right font-semibold ${
-                            row.delta > 0 ? 'text-green-600' : row.delta < 0 ? 'text-red-600' : ''
-                          }`}>
-                            {row.delta > 0 ? '+' : ''}{Math.round(row.delta)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {results.history.length > 200 && (
-                    <p className="text-center text-gray-500 mt-4">
-                      Showing first 200 of {results.history.length} records. Download Excel for full history.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          {!data && (
+            <div className="px-8 pb-6">
+              <p className="text-center text-stone-500 font-light">
+                Upload data first to apply configuration changes
+              </p>
+            </div>
+          )}
         </div>
+      </div>
+    )}
       </div>
     </div>
   );
