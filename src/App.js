@@ -380,7 +380,7 @@ export default function DiscGolfElo() {
     <div className="min-h-screen bg-stone-50 w-full">
       <div className="w-full">
     {/* Header */}
-    <div className="bg-gradient-to-br from-emerald-900 to-stone-600 text-stone-200 w-full">
+    <div className="bg-gradient-to-br from-emerald-900 to-emerald-800 text-stone-200 w-full">
       <div className="w-full px-6 py-10">
         <div className="flex items-center justify-between">
           <div>
