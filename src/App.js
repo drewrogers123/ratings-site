@@ -185,6 +185,7 @@ export default function DiscGolfElo() {
   const [data, setData] = useState(null);
   const [results, setResults] = useState(null);
   const [activeTab, setActiveTab] = useState('upload');
+  const [filename, setFilename] = useState('Player rankings');
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -202,6 +203,8 @@ export default function DiscGolfElo() {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    setFilename(file.name.replace(/\.xlsx?$/i, ''));
 
     setProcessing(true);
     setError(null);
@@ -276,19 +279,52 @@ export default function DiscGolfElo() {
 
     const wb = XLSX.utils.book_new();
     
-    // final ratings
+    // Final ratings
     const ws1 = XLSX.utils.json_to_sheet(results.finalRatings);
     XLSX.utils.book_append_sheet(wb, ws1, 'Final Ratings');
     
-    // hitsory
+    // Round by round ELO ratings
+    const players = [...new Set(results.snapshots.map(s => s.player))];
+    const rounds = [...new Set(results.snapshots.map(s => s.round_id))].sort();
+    
+    // Create headers: Player, Round 1, Round 2, etc.
+    const headers = ['Player', ...rounds];
+    const roundByRoundData = [headers];
+    
+    // For each player, create a row with their ELO after each round
+    players.forEach(player => {
+      const playerRow = [player];
+      const playerSnapshots = results.snapshots
+        .filter(s => s.player === player)
+        .sort((a, b) => a.round_seq - b.round_seq);
+      
+      // Create a map of round_id to rating for this player
+      const roundToRating = {};
+      playerSnapshots.forEach(snap => {
+        roundToRating[snap.round_id] = Math.round(snap.rating);
+      });
+      
+      // Fill in the ratings for each round
+      rounds.forEach(round => {
+        playerRow.push(roundToRating[round] || '');
+      });
+      
+      roundByRoundData.push(playerRow);
+    });
+    
+    // Add the round by round sheet
+    const wsRoundByRound = XLSX.utils.aoa_to_sheet(roundByRoundData);
+    XLSX.utils.book_append_sheet(wb, wsRoundByRound, 'Round by Round');
+    
+    // History
     const ws2 = XLSX.utils.json_to_sheet(results.history);
     XLSX.utils.book_append_sheet(wb, ws2, 'History');
     
-    // snapshots
+    // Snapshots
     const ws3 = XLSX.utils.json_to_sheet(results.snapshots);
     XLSX.utils.book_append_sheet(wb, ws3, 'Snapshots');
     
-    // scaling details
+    // Scaling details
     if (results.scalingRecords.length > 0) {
       const ws4 = XLSX.utils.json_to_sheet(results.scalingRecords);
       XLSX.utils.book_append_sheet(wb, ws4, 'Scaling Details');
@@ -468,16 +504,18 @@ export default function DiscGolfElo() {
         <div>
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h2 className="text-3xl font-light text-stone-900 mb-2">Player rankings</h2>
+              <h2 className="text-3xl font-light text-stone-900 mb-2">{filename}</h2>
               <p className="text-lg text-stone-600 font-light">
                 {selectedRound ? `After: ${selectedRound}` : 'Final rankings'}
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-4">
+              <label htmlFor="round-select" className="text-base font-normal text-stone-700 whitespace-nowrap">View rankings for:</label>
               <select
+                id="round-select"
                 value={selectedRound || ''}
                 onChange={(e) => setSelectedRound(e.target.value || null)}
-                className="border border-stone-300 rounded-xl px-4 py-3 text-stone-700 font-normal focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white"
+                className="border border-stone-300 rounded-xl px-4 py-3 text-stone-700 font-normal focus:outline-none focus:ring-2 focus:ring-emerald-800 bg-white min-w-[200px]"
               >
                 <option value="">Final rankings</option>
                 {uniqueRounds.map(round => (
