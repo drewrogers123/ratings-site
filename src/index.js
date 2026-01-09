@@ -1,3 +1,9 @@
+/**
+ * Disc Golf Elo Calculator
+ * Copyright (c) 2026 Drew Rogers
+ * All rights reserved.
+ */
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';

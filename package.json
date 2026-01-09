@@ -2,6 +2,8 @@
   "name": "disc-golf-elo-calculator",
   "version": "1.0.0",
   "private": true,
+  "author": "Drew Rogers",
+  "license": "MIT",
   "dependencies": {
     "@heroicons/react": "^2.0.18",
     "@testing-library/jest-dom": "^5.17.0",

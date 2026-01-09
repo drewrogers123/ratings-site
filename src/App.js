@@ -1,3 +1,9 @@
+/**
+ * Disc Golf Elo Calculator
+ * Copyright (c) 2026 Drew Rogers
+ * All rights reserved.
+ */
+
 import React, { useState, useMemo } from 'react';
 import { Upload, Download, Settings, TrendingUp, Users, X , Variable} from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -772,6 +778,13 @@ export default function DiscGolfElo() {
         </div>
       </div>
     )}
+      
+      {/* Footer */}
+      <footer className="w-full bg-stone-100 border-t border-stone-200 py-6 px-6">
+        <div className="text-center text-stone-600 text-sm">
+          © 2026 Drew Rogers. All rights reserved.
+        </div>
+      </footer>
       </div>
     </div>
   );
